@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=SUNDIATA
+GenericName=Identity and Credential Security Assessment Framework
+Comment=Authorized identity directory and credential security assessment, relationship analysis, and evidence-driven reporting
+Exec=@PREFIX@/bin/sundiata
+Icon=@PREFIX@/share/icons/hicolor/512x512/apps/sundiata.png
+Terminal=true
+Categories=Development;Security;Utility;
+Keywords=identity;credentials;directory;authentication;security;assessment;audit;
