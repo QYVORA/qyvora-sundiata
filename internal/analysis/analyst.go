@@ -8,6 +8,7 @@ package analysis
 
 import (
 	"context"
+	"sort"
 
 	"github.com/QYVORA/qyvora-sundiata/internal/errors"
 	"github.com/QYVORA/qyvora-sundiata/internal/events"
@@ -202,7 +203,7 @@ func Stages(reg *rules.Registry, cfg map[string]any, maxEntries int) []pipeline.
 					Config:    cfg,
 				}
 				sink := rules.NewSink()
-				if err := reg.Run(ctx, env, sink); err != nil {
+				if err := reg.RunProfile(ctx, env, sink, profileOf(cfg)); err != nil {
 					return err
 				}
 				for _, f := range sink.List() {
@@ -228,6 +229,9 @@ func Stages(reg *rules.Registry, cfg map[string]any, maxEntries int) []pipeline.
 				step.Result.Score = score
 				step.Result.Level = level
 				step.Result.Evidence = step.Evidence.List()
+				sort.Slice(step.Result.Evidence, func(i, j int) bool {
+					return step.Result.Evidence[i].Hash < step.Result.Evidence[j].Hash
+				})
 				if step.Events != nil {
 					step.Events.Info(events.RiskCalculated, map[string]any{
 						"score": score, "level": level, "findings": len(step.Result.Findings),
@@ -251,15 +255,33 @@ func currentDirectory(step *pipeline.Step) (*identity.Directory, error) {
 	if step == nil || step.Target == nil {
 		return nil, errors.NewExitError(1, "assessment requires a directory or simulation target")
 	}
-	if step.Sim {
-		return identity.Simulate(identity.SimulationOptions{}), nil
-	}
-	if step.Target.Type != models.TargetSnapshot {
-		return nil, errors.NewExitError(1, "unsupported target: live identity source collection is not implemented; provide a directory file")
-	}
-	d, err := identity.LoadFile(step.Target.Value)
+	v, err := step.Cached("input:identity", func() (any, error) {
+		if step.Sim {
+			return identity.Simulate(identity.SimulationOptions{}), nil
+		}
+		if step.Target.Type != models.TargetSnapshot {
+			return nil, errors.NewExitError(1, "unsupported target: live identity source collection is not implemented; provide a directory file")
+		}
+		d, err := identity.LoadFile(step.Target.Value)
+		if err != nil {
+			return nil, errors.WrapExitError(1, "loading directory", err)
+		}
+		return d, nil
+	})
 	if err != nil {
-		return nil, errors.WrapExitError(1, "loading directory", err)
+		return nil, err
 	}
-	return d, nil
+	return v.(*identity.Directory), nil
+}
+
+// profileOf returns the named assessment profile, defaulting to standard
+// when the configuration does not select one.
+func profileOf(cfg map[string]any) string {
+	if p, ok := cfg["profile"].(string); ok && p != "" {
+		return p
+	}
+	// No profile selected falls through to the full rule set so pipeline
+	// invocations without an explicit profile behave exactly as before the
+	// profile filter existed. The CLI always resolves an explicit profile.
+	return ""
 }
