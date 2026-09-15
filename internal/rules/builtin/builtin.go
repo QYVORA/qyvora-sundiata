@@ -29,6 +29,7 @@ func All() []rules.Rule {
 		&attackPath{},
 		&excessiveImpersonation{},
 		&legacyAdmin{},
+		&legacyCredential{},
 		&longSession{},
 	}
 }
@@ -161,16 +162,28 @@ func (r *privilegedNoMFA) Meta() rules.Meta {
 
 func (r *privilegedNoMFA) Run(_ context.Context, envAny any, sink *rules.Sink) error {
 	env := envAny.(*analysis.Env)
+	policy := map[string]identity.AuthPolicy{}
+	for _, p := range env.Directory.AuthPolicies {
+		policy[p.Identity] = p
+	}
 	for _, id := range identity.PrivilegedWithoutMFA(env.Directory) {
+		note := "privileged identity without enforced MFA"
+		confidence := r.Meta().DefaultConfidence
+		if p, ok := policy[id.ID]; ok && identity.RecentMFA(p, env.Directory.Modified) {
+			note = "privileged identity with MFA used recently but not enforced"
+			confidence = models.ConfidenceProbable
+		}
 		ev := env.AddEvidence(models.EvidenceObservation, "authentication", id.ID,
-			id.Name, "privileged identity without enforced MFA")
+			id.Name, note)
 		if env.Events != nil {
 			env.Events.Info(events.AuthAnalyzed, map[string]any{
 				"identity": id.ID, "mfa_enforced": false, "privileged": true,
 			})
 		}
-		sink.Add(newFinding(r.Meta(), env, []string{"identity:" + id.ID},
-			map[string]string{"name": id.Name, "admin": boolStr(id.Admin)}, ev))
+		f := newFinding(r.Meta(), env, []string{"identity:" + id.ID},
+			map[string]string{"name": id.Name, "admin": boolStr(id.Admin)}, ev)
+		f.Confidence = confidence
+		sink.Add(f)
 	}
 	return nil
 }
@@ -299,18 +312,26 @@ func (r *excessPrivilege) Meta() rules.Meta {
 
 func (r *excessPrivilege) Run(_ context.Context, envAny any, sink *rules.Sink) error {
 	env := envAny.(*analysis.Env)
-	for _, rel := range identity.SensitiveMemberships(env.Directory) {
-		name := rel.From
-		group := rel.To
-		for _, id := range env.Directory.Identities {
-			if id.ID == rel.From {
-				name = id.Name
-			}
+	nameBy := map[string]string{}
+	for _, id := range env.Directory.Identities {
+		if _, ok := nameBy[id.ID]; !ok {
+			nameBy[id.ID] = id.Name
 		}
-		for _, g := range env.Directory.Groups {
-			if g.ID == rel.To {
-				group = g.Name
-			}
+	}
+	groupBy := map[string]string{}
+	for _, g := range env.Directory.Groups {
+		if _, ok := groupBy[g.ID]; !ok {
+			groupBy[g.ID] = g.Name
+		}
+	}
+	for _, rel := range identity.SensitiveMemberships(env.Directory) {
+		name, ok := nameBy[rel.From]
+		if !ok {
+			name = rel.From
+		}
+		group, ok := groupBy[rel.To]
+		if !ok {
+			group = rel.To
 		}
 		ev := env.AddEvidence(models.EvidenceObservation, "privilege", rel.ID,
 			rel.From, "membership in sensitive group "+group)
@@ -392,7 +413,8 @@ func (r *attackPath) Meta() rules.Meta {
 
 func (r *attackPath) Run(_ context.Context, envAny any, sink *rules.Sink) error {
 	env := envAny.(*analysis.Env)
-	for _, p := range identity.HighValueAttackPaths(env.Directory.AttackPaths) {
+	dir := env.Directory
+	for _, p := range identity.HighValueAttackPaths(identity.ComputeAttackPaths(dir)) {
 		ev := env.AddEvidence(models.EvidenceObservation, "attack-path", p.ID,
 			p.Start, "attack path to "+p.End+" ("+itoa(p.Steps)+" steps)")
 		if env.Events != nil {
@@ -413,15 +435,39 @@ func isLegacyAdmin(id identity.Identity) bool {
 	if !id.Enabled {
 		return false
 	}
-	if id.Name == "legacy-admin" || strings.HasPrefix(id.Name, "legacy-") {
-		return true
+	s := strings.ToLower(id.Name + " " + id.ID + " " + id.Note)
+	return strings.Contains(s, "legacy")
+}
+
+// legacyCredential detects authentication material that predates modern
+// protocol suites and exposes password-equivalent hashes.
+type legacyCredential struct{}
+
+func (r *legacyCredential) Meta() rules.Meta {
+	return metadata("SDT-013", "Legacy authentication hash exposure", "credentials",
+		"The directory retains credentials in legacy formats such as NTLMv1 or LM "+
+			"hashes, which are password-equivalent under modern cracking tooling.",
+		"Disable legacy authentication protocols, ban the hashes from new "+
+			"credential stores, and force rotation of every affected credential.",
+		models.SeverityHigh)
+}
+
+func (r *legacyCredential) Run(_ context.Context, envAny any, sink *rules.Sink) error {
+	env := envAny.(*analysis.Env)
+	legacy := map[string]bool{
+		"ntlmv1": true, "ntlm": true, "lm": true, "lm_hash": true,
+		"ntlm_hash": true, "kerb_rc4": true,
 	}
-	for _, g := range id.Groups {
-		if g == "grp-dm" {
-			return false
+	for _, c := range env.Directory.Credentials {
+		if !legacy[strings.ToLower(c.Type)] {
+			continue
 		}
+		ev := env.AddEvidence(models.EvidenceObservation, "credentials", c.ID,
+			c.Identity, "legacy "+c.Type+" credential hash retained")
+		sink.Add(newFinding(r.Meta(), env, []string{"credential:" + c.ID},
+			map[string]string{"identity": c.Identity, "type": c.Type, "storage": c.Storage}, ev))
 	}
-	return false
+	return nil
 }
 
 func groupSensitivity(d *identity.Directory, id string) string {

@@ -147,11 +147,19 @@ type AttackPath struct {
 
 // Load parses a directory from r, rejecting documents that do not declare the
 // directory schema.
+// maxInputBytes bounds accepted input size so malformed or hostile documents
+// cannot exhaust available memory during decode.
+const maxInputBytes = 64 << 20 // 64 MiB
+
 func Load(r io.Reader) (*Directory, error) {
 	var d Directory
-	dec := json.NewDecoder(r)
+	lr := io.LimitReader(r, maxInputBytes+1)
+	dec := json.NewDecoder(lr)
 	if err := dec.Decode(&d); err != nil {
 		return nil, fmt.Errorf("parsing directory: %w", err)
+	}
+	if n, _ := io.Copy(io.Discard, lr); n > 0 {
+		return nil, fmt.Errorf("directory exceeds maximum supported input size (%d bytes)", maxInputBytes)
 	}
 	if d.Schema != SchemaVersion {
 		return nil, fmt.Errorf("unsupported directory schema %q (want %s)", d.Schema, SchemaVersion)
@@ -170,6 +178,13 @@ func LoadFile(path string) (*Directory, error) {
 		return nil, err
 	}
 	defer func() { _ = f.Close() }()
+	fi, serr := f.Stat()
+	if serr != nil {
+		return nil, fmt.Errorf("stat %s: %w", path, serr)
+	}
+	if fi.Size() > maxInputBytes {
+		return nil, fmt.Errorf("%s exceeds maximum supported input size (%d bytes)", path, maxInputBytes)
+	}
 	return Load(f)
 }
 
