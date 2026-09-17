@@ -51,7 +51,7 @@ builds once the first verifiable release exists.
 Full assessment, no input required, deterministic:
 
 ```sh
-sundiata assess --sim       # risk 80/100 (critical)
+sundiata assess --sim       # risk 100/100 (critical)
 ```
 
 Generate a sample identity directory and assess it:
