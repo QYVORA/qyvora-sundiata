@@ -22,16 +22,17 @@ const (
 
 // OperationMetadata describes one operation's safety contract.
 type OperationMetadata struct {
-	ID           string           `json:"id"`
-	Name         string           `json:"name"`
-	Description  string           `json:"description"`
-	Class        Class            `json:"class"`
-	Risk         models.RiskLevel `json:"risk"`
-	TargetType   string           `json:"target_type"`
-	AuthRequired bool             `json:"authorization_required"`
-	Confirm      bool             `json:"confirmation_required"`
-	ChangesState bool             `json:"changes_state"`
-	Reversible   bool             `json:"reversible"`
+	ID           string              `json:"id"`
+	Name         string              `json:"name"`
+	Description  string              `json:"description"`
+	Class        Class               `json:"class"`
+	Risk         models.RiskLevel    `json:"risk"`
+	NoiseLevel   models.NoiseLevel   `json:"noise_level"`
+	TargetType   string              `json:"target_type"`
+	AuthRequired bool                `json:"authorization_required"`
+	Confirm      bool                `json:"confirmation_required"`
+	ChangesState bool                `json:"changes_state"`
+	Reversible   bool                `json:"reversible"`
 }
 
 // Known operations.
@@ -40,21 +41,21 @@ var (
 	OpDirectoryParse = OperationMetadata{
 		ID: "sundiata.directory.parse", Name: "identity directory snapshot analysis",
 		Description: "Parse and analyze an offline identity directory snapshot file.",
-		Class:       ClassDiscovery, Risk: models.RiskS1, TargetType: "directory",
+		Class:       ClassDiscovery, Risk: models.RiskS1, NoiseLevel: models.NoiseLevelPassive, TargetType: "directory",
 		AuthRequired: false, Confirm: false, ChangesState: false, Reversible: true,
 	}
 	// OpAnalyze runs the analysis pipeline over collected identities. Read-only.
 	OpAnalyze = OperationMetadata{
 		ID: "sundiata.analyze", Name: "identity and credential analysis",
 		Description: "Run identity discovery, authentication, credential exposure, privilege, relationship, secret and attack-path analysis.",
-		Class:       ClassAnalysis, Risk: models.RiskS1, TargetType: "any",
+		Class:       ClassAnalysis, Risk: models.RiskS1, NoiseLevel: models.NoiseLevelPassive, TargetType: "any",
 		AuthRequired: false, Confirm: false, ChangesState: false, Reversible: true,
 	}
 	// OpLiveSource would contact a real identity provider. Not implemented.
 	OpLiveSource = OperationMetadata{
 		ID: "sundiata.live.source", Name: "live identity source collection",
 		Description: "Query a live identity provider API (NOT IMPLEMENTED).",
-		Class:       ClassLiveSource, Risk: models.RiskS2, TargetType: "directory",
+		Class:       ClassLiveSource, Risk: models.RiskS2, NoiseLevel: models.NoiseLevelModerate, TargetType: "directory",
 		AuthRequired: true, Confirm: true, ChangesState: false, Reversible: true,
 	}
 )
