@@ -32,4 +32,4 @@ _No report-tier modules._
 | `sundiata sources` | list supported identity sources and their status |
 | `sundiata target` | manage assessment targets (directory files and simulation) |
 | `sundiata tui` | start the interactive terminal application |
-
+| `docs script <file>` | Run a `.qs` script with the shared scripting engine (`run`/`build` subcommands) |
