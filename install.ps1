@@ -39,7 +39,7 @@ $SourceBuild = '1'
 $MinGo      = '1.26'
 $IconAsset  = 'sundiata.png'
 $IcoAsset   = 'sundiata.ico'
-$AppComment = 'Social engineering and phishing simulation readiness'
+$AppComment = 'Identity and access security assessment (Active Directory)'
 # The OS/architecture tokens this tool actually publishes prebuilt archives
 # for. A tool that cannot cross-compile (linux-only transports, or cgo that
 # must link on the release runner) declares a subset here, so this installer

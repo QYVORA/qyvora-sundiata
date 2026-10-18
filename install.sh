@@ -79,8 +79,8 @@ QYVORA_MIN_GO="1.26"
 QYVORA_ICON="sundiata.png"
 QYVORA_ICO="sundiata.ico"
 QYVORA_DESKTOP_NAME="SUNDIATA"
-QYVORA_DESKTOP_COMMENT="Social engineering and phishing simulation readiness"
-QYVORA_DESKTOP_KEYWORDS="phishing;social-engineering;awareness;simulation;email;training"
+QYVORA_DESKTOP_COMMENT="Identity and access security assessment (Active Directory)"
+QYVORA_DESKTOP_KEYWORDS="active-directory;identity;access;accounts;privilege;attack-path"
 # Ordered probes used to prove the installed binary runs
 QYVORA_VERSION_PROBE="--version version --help"
 # Additional .desktop entry, if the upstream asset ships one
