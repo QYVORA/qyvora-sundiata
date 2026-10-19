@@ -20,6 +20,7 @@ import (
 	"github.com/spf13/viper"
 
 	"github.com/QYVORA/qyvora-sundiata/internal/analysis"
+	"github.com/QYVORA/qyvora-sundiata/internal/banner"
 	"github.com/QYVORA/qyvora-sundiata/internal/capabilities"
 	"github.com/QYVORA/qyvora-sundiata/internal/config"
 	pexit "github.com/QYVORA/qyvora-sundiata/internal/errors"
@@ -175,7 +176,7 @@ func (a *App) rootCommand() *cobra.Command {
 	root := &cobra.Command{
 		Use:           "sundiata",
 		Short:         "QYVORA identity and credential security assessment framework",
-		Long:          "sundiata analyzes offline identity directory snapshots and deterministic simulations for identity discovery, authentication and MFA posture, credential exposure, privilege and relationship mapping, secret discovery and identity attack paths. Credential material is redacted before output and never stored. Live identity source collection is not implemented and is refused honestly.",
+		Long:          banner.Render() + "\n\n  " + banner.Tagline + " — " + version.CompanyName + "\n  " + version.CompanyURL + "\n  Built in " + version.CompanyCity + "\n\n" + "sundiata analyzes offline identity directory snapshots and deterministic simulations for identity discovery, authentication and MFA posture, credential exposure, privilege and relationship mapping, secret discovery and identity attack paths. Credential material is redacted before output and never stored. Live identity source collection is not implemented and is refused honestly.",
 		Version:       version.Version,
 		SilenceUsage:  true,
 		SilenceErrors: true,
