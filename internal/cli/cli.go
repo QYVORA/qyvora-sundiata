@@ -176,7 +176,7 @@ func (a *App) rootCommand() *cobra.Command {
 	root := &cobra.Command{
 		Use:           "sundiata",
 		Short:         "QYVORA identity and credential security assessment framework",
-		Long:          banner.Render() + "\n\n  " + banner.Tagline + " — " + version.CompanyName + "\n  " + version.CompanyURL + "\n  Built in " + version.CompanyCity + "\n\n" + "sundiata analyzes offline identity directory snapshots and deterministic simulations for identity discovery, authentication and MFA posture, credential exposure, privilege and relationship mapping, secret discovery and identity attack paths. Credential material is redacted before output and never stored. Live identity source collection is not implemented and is refused honestly.",
+		Long:          banner.Render() + "\n\n  " + banner.Tagline + " — " + version.CompanyName + "\n  " + version.CompanyURL + "\n  Built in " + version.CompanyCity + "\n\n" + "sundiata analyzes offline identity directory snapshots and deterministic simulations for identity discovery, authentication and MFA posture, credential exposure, privilege and relationship mapping, secret discovery and identity attack paths. Credential material is redacted before output and never stored. Live identity source collection is not implemented and is refused honestly." + "\n\nCommands follow the shared tier grammar\nsundiata <tier> <module> [<action>] [target] [flags], where the tier is one of\nrecon, exploit, or report. Run it with no arguments to print this help;\nassessment is one-shot.",
 		Version:       version.Version,
 		SilenceUsage:  true,
 		SilenceErrors: true,
