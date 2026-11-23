@@ -1,0 +1,15 @@
+{
+  "schema": "qyvora.sundiata.directory.v1",
+  "tenant": "example.com",
+  "source": "active-directory",
+  "domain": "example.com",
+  "identities": [
+    {
+      "id": "USER-001",
+      "name": "alice",
+      "kind": "user",
+      "enabled": true,
+      "admin": false
+    }
+  ]
+}

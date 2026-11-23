@@ -1,8 +1,8 @@
 # Sundiata
 
 > **Identity & access security assessment framework.**
-> A terminal-first console and CLI for offline identity directory analysis:
-> account enumeration, authentication and MFA posture, credential exposure,
+> A one-shot CLI for offline identity directory analysis: account
+> enumeration, authentication and MFA posture, credential exposure,
 > privilege mapping, secret discovery and identity attack paths.
 
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
@@ -11,14 +11,13 @@
 
 Sundiata is QYVORA's identity & access security assessment framework for
 **offline identity directory snapshots** and deterministic simulations.
-It runs as a shared terminal-first console **and** a one-shot CLI with
-identical commands, and produces evidence-backed findings with transparent
-risk scoring. **Credential material is redacted before output and never
-stored.** Live identity source collection is **not implemented and is
-refused honestly**.
+It runs as a one-shot CLI and produces evidence-backed findings with
+transparent risk scoring. **Credential material is redacted before output
+and never stored.** Live identity source collection is **not implemented
+and is refused honestly**.
 
-- **One workflow, two surfaces** — the console commands equal the CLI
-  commands.
+- **One workflow, one surface** — every assessment runs through the one-shot
+  CLI.
 - **Deterministic `--sim`** — fixed dataset exercises every rule, no
   domain controller required, CI-ready.
 - **Offline only** — analyzes only the directory files you explicitly
@@ -61,15 +60,10 @@ sundiata directory --sim
 sundiata assess directory.sim.json
 ```
 
-Interactive console (REPL on a real terminal; stdin piping uses a plain line reader):
-
-```sh
-sundiata
-assess --sim
-findings
-evidence
-exit
-```
+The interactive console is retired and unavailable in this release. The
+per-tool TUI is excluded from builds (`//go:build ignore`) pending the redirect
+of qyvora-tui to the future AI orchestration layer; a bare invocation prints
+CLI usage. Use the one-shot commands above.
 
 Machine-readable output:
 
@@ -84,7 +78,6 @@ sundiata report -o json
 ```
 assess        run the analysis pipeline against a directory or simulation
 capabilities  print the machine-readable capability contract
-console       start the interactive assessment console
 directory     generate a deterministic sample identity directory
 evidence      inspect the latest assessment evidence
 findings      inspect the latest assessment findings
