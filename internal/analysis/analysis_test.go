@@ -21,7 +21,7 @@ import (
 // finding.
 func TestSimulationPipelineProducesFindings(t *testing.T) {
 	reg := rules.NewRegistry()
-	reg.RegisterAll(builtin.All()...)
+	_ = reg.RegisterAll(builtin.All()...)
 
 	var evBuf bytes.Buffer
 	stream := events.NewStream(&evBuf)
@@ -79,7 +79,7 @@ func TestSimulationPipelineProducesFindings(t *testing.T) {
 // raw directory document.
 func TestDirectoryPipelineAcceptsFileTarget(t *testing.T) {
 	reg := rules.NewRegistry()
-	reg.RegisterAll(builtin.All()...)
+	_ = reg.RegisterAll(builtin.All()...)
 
 	doc := `{"schema":"qyvora.sundiata.directory.v1","tenant":"demo","source":"okta",
 	  "identities":[{"id":"id-api","name":"api-svc","kind":"service_account","enabled":true}],
