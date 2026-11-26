@@ -7,6 +7,10 @@
 
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
+## Readiness
+
+**BETA.** Sundiata performs offline identity-directory analysis, refuses live collection, and redacts credentials before output. Implementation exists for exploration/testing but has not received final production-readiness approval. Its owner classification is `BETA` in the [Product Registry](../../../../knowledge/qyvora-docs/07-products/PRODUCT-REGISTRY.md); shipped implementation and tags do not promote it to `AVAILABLE`.
+
 ## Overview
 
 Sundiata is QYVORA's identity & access security assessment framework for
